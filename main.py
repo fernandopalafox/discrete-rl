@@ -50,12 +50,13 @@ epsilon_0 = 1.0
 epsilon_decay = 0.999
 epsilon_min = 0.05
 discount_factor = 0.9
+is_slippery = False
 
 # Run
 env = gym.make(
     "FrozenLake-v1",
     map_name="4x4",
-    is_slippery=False,
+    is_slippery=is_slippery,
     desc=generate_random_map(size=env_size, seed=rng_seed),
 )
 Q = np.zeros([env.observation_space.n, env.action_space.n])
