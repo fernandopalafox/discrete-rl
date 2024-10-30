@@ -4,6 +4,6 @@ Simple implementation of a first visit, constant alpha, epsilon-greedy Monte Car
 
 Here's a pic showing the environment, the learned policy and the value function:
 
-![Frozen Lake](figures/Q8.png.png)
+<img src="figures/Q8.png" alt="predictions" width=600/>
 
 Still need to mess with hyperparameters in the the slippery environment (and perhaps use a better algorithm), but it works fine for the deterministic case.
