@@ -43,6 +43,7 @@ def generate_episode(env, Q, epsilon):
         next_state, reward, done, _, _ = env.step(action)
         episode.append((state, action, reward))
         state = next_state
+        total_reward += reward
         if done:
             break
     return episode, total_reward
@@ -76,10 +77,8 @@ def plot_Q(Q):
 epsilon = epsilon_0
 for i in range(num_episodes):
     episode, total_reward = generate_episode(env, Q, epsilon)
-    if total_reward > 0:
-        Q = update_Q(Q, episode, alpha, discount_factor)
+    Q = update_Q(Q, episode, alpha, discount_factor)
     epsilon = max(epsilon * epsilon_decay, epsilon_min)
-    # print(Q)
     print(f"Ep {i+1}/{num_episodes}, eps: {epsilon}, TR: {total_reward}")
 
 plot_Q(Q)
