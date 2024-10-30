@@ -53,6 +53,7 @@ discount_factor = 0.9
 is_slippery = False
 
 # Run
+np.random.seed(rng_seed)
 env = gym.make(
     "FrozenLake-v1",
     map_name="4x4",
