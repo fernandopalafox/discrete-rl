@@ -1,30 +1,85 @@
 import gymnasium as gym
 from gymnasium.envs.toy_text.frozen_lake import generate_random_map
-import random
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 # Params
 rng_seed = 42
 env_size = 4
-num_episodes = 3
+num_episodes = 30000
+alpha = 0.02
+epsilon_0 = 1.0
+epsilon_decay = 0.999
+epsilon_min = 0.05
+discount_factor = 0.9
 
 # Generate env
 env = gym.make(
     "FrozenLake-v1",
     map_name="4x4",
-    is_slippery=True,
+    is_slippery=False,
     desc=generate_random_map(size=env_size, seed=rng_seed),
 )
 
-for i_episode in range(num_episodes):
+
+# Reward should go up lol
+Q = np.zeros([env.observation_space.n, env.action_space.n])
+
+
+def generate_episode(env, Q, epsilon):
+    """
+    Episode generator using epsilon-greedy policy.
+    Returns a list of (state, action, reward) tuples
+    """
     state, _ = env.reset()
-    print('Initial state:', state)
-
+    episode = []
+    total_reward = 0
     while True:
-        action = env.action_space.sample() 
-        state, reward, done, truncated, info = env.step(action)
+        if np.random.uniform() < epsilon:
+            action = env.action_space.sample()
+        else:
+            action = np.argmax(Q[state, :])
+        next_state, reward, done, _, _ = env.step(action)
+        episode.append((state, action, reward))
+        state = next_state
+        if done:
+            break
+    return episode, total_reward
 
-        # Print stuff
-        print('Action:', action)
-        print('State:', state)
-        print('Reward:', reward)
-        print('Done:', done)
+
+def update_Q(Q, episode, alpha, discount_factor):
+    """
+    Update Q table using first-visit constant alpha MC update rule
+    """
+    visited = set()
+    G = 0
+    for state, action, reward in episode[::-1]:
+        G = discount_factor * G + reward
+        if (state, action) not in visited:
+            visited.add((state, action))
+            Q[state, action] = Q[state, action] + alpha * (G - Q[state, action])
+
+    return Q
+
+
+def plot_Q(Q):
+    """
+    Plot Q table
+    """
+    fig, ax = plt.subplots()
+    cax = ax.matshow(Q, cmap="viridis")
+    fig.colorbar(cax)
+    plt.savefig("figures/Q.png")
+
+
+epsilon = epsilon_0
+for i in range(num_episodes):
+    episode, total_reward = generate_episode(env, Q, epsilon)
+    if total_reward > 0:
+        Q = update_Q(Q, episode, alpha, discount_factor)
+    epsilon = max(epsilon * epsilon_decay, epsilon_min)
+    # print(Q)
+    print(f"Ep {i+1}/{num_episodes}, eps: {epsilon}, TR: {total_reward}")
+
+plot_Q(Q)
